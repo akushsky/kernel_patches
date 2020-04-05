@@ -1,0 +1,180 @@
+diff --git a/net/bluetooth/af_bluetooth.c b/net/bluetooth/af_bluetooth.c
+index 91e3ba280706..eec5ac17faee 100644
+--- a/net/bluetooth/af_bluetooth.c
++++ b/net/bluetooth/af_bluetooth.c
+@@ -113,7 +113,7 @@ static int bt_sock_create(struct net *net, struct socket *sock, int proto,
+ {
+ 	int err;
+ 
+-	if (net != &init_net)
++	if (!net_eq(net, current->nsproxy->net_ns)) 
+ 		return -EAFNOSUPPORT;
+ 
+ 	if (proto < 0 || proto >= BT_MAX_PROTO)
+diff --git a/net/bluetooth/bnep/sock.c b/net/bluetooth/bnep/sock.c
+index b5116fa9835e..742b8626ebcd 100644
+--- a/net/bluetooth/bnep/sock.c
++++ b/net/bluetooth/bnep/sock.c
+@@ -241,7 +241,7 @@ int __init bnep_sock_init(void)
+ 		goto error;
+ 	}
+ 
+-	err = bt_procfs_init(&init_net, "bnep", &bnep_sk_list, NULL);
++	err = bt_procfs_init(current->nsproxy->net_ns, "bnep", &bnep_sk_list, NULL);
+ 	if (err < 0) {
+ 		BT_ERR("Failed to create BNEP proc file");
+ 		bt_sock_unregister(BTPROTO_BNEP);
+@@ -259,7 +259,7 @@ int __init bnep_sock_init(void)
+ 
+ void __exit bnep_sock_cleanup(void)
+ {
+-	bt_procfs_cleanup(&init_net, "bnep");
++	bt_procfs_cleanup(current->nsproxy->net_ns, "bnep");
+ 	bt_sock_unregister(BTPROTO_BNEP);
+ 	proto_unregister(&bnep_proto);
+ }
+diff --git a/net/bluetooth/cmtp/sock.c b/net/bluetooth/cmtp/sock.c
+index ce86a7bae844..d3d608489219 100644
+--- a/net/bluetooth/cmtp/sock.c
++++ b/net/bluetooth/cmtp/sock.c
+@@ -245,7 +245,7 @@ int cmtp_init_sockets(void)
+ 		goto error;
+ 	}
+ 
+-	err = bt_procfs_init(&init_net, "cmtp", &cmtp_sk_list, NULL);
++	err = bt_procfs_init(current->nsproxy->net_ns, "cmtp", &cmtp_sk_list, NULL);
+ 	if (err < 0) {
+ 		BT_ERR("Failed to create CMTP proc file");
+ 		bt_sock_unregister(BTPROTO_HIDP);
+@@ -263,7 +263,7 @@ int cmtp_init_sockets(void)
+ 
+ void cmtp_cleanup_sockets(void)
+ {
+-	bt_procfs_cleanup(&init_net, "cmtp");
++	bt_procfs_cleanup(current->nsproxy->net_ns, "cmtp");
+ 	bt_sock_unregister(BTPROTO_CMTP);
+ 	proto_unregister(&cmtp_proto);
+ }
+diff --git a/net/bluetooth/hci_sock.c b/net/bluetooth/hci_sock.c
+index 65d734c165bd..549c6c1f273c 100644
+--- a/net/bluetooth/hci_sock.c
++++ b/net/bluetooth/hci_sock.c
+@@ -2038,7 +2038,7 @@ int __init hci_sock_init(void)
+ 		goto error;
+ 	}
+ 
+-	err = bt_procfs_init(&init_net, "hci", &hci_sk_list, NULL);
++	err = bt_procfs_init(current->nsproxy->net_ns, "hci", &hci_sk_list, NULL);
+ 	if (err < 0) {
+ 		BT_ERR("Failed to create HCI proc file");
+ 		bt_sock_unregister(BTPROTO_HCI);
+@@ -2056,7 +2056,7 @@ int __init hci_sock_init(void)
+ 
+ void hci_sock_cleanup(void)
+ {
+-	bt_procfs_cleanup(&init_net, "hci");
++	bt_procfs_cleanup(current->nsproxy->net_ns, "hci");
+ 	bt_sock_unregister(BTPROTO_HCI);
+ 	proto_unregister(&hci_sk_proto);
+ }
+diff --git a/net/bluetooth/hidp/sock.c b/net/bluetooth/hidp/sock.c
+index 008ba439bd62..19d4e9a40905 100644
+--- a/net/bluetooth/hidp/sock.c
++++ b/net/bluetooth/hidp/sock.c
+@@ -275,7 +275,7 @@ int __init hidp_init_sockets(void)
+ 		goto error;
+ 	}
+ 
+-	err = bt_procfs_init(&init_net, "hidp", &hidp_sk_list, NULL);
++	err = bt_procfs_init(current->nsproxy->net_ns, "hidp", &hidp_sk_list, NULL);
+ 	if (err < 0) {
+ 		BT_ERR("Failed to create HIDP proc file");
+ 		bt_sock_unregister(BTPROTO_HIDP);
+@@ -293,7 +293,7 @@ int __init hidp_init_sockets(void)
+ 
+ void __exit hidp_cleanup_sockets(void)
+ {
+-	bt_procfs_cleanup(&init_net, "hidp");
++	bt_procfs_cleanup(current->nsproxy->net_ns, "hidp");
+ 	bt_sock_unregister(BTPROTO_HIDP);
+ 	proto_unregister(&hidp_proto);
+ }
+diff --git a/net/bluetooth/l2cap_sock.c b/net/bluetooth/l2cap_sock.c
+index 67a8642f57ea..404bb1046c9c 100644
+--- a/net/bluetooth/l2cap_sock.c
++++ b/net/bluetooth/l2cap_sock.c
+@@ -1685,7 +1685,7 @@ int __init l2cap_init_sockets(void)
+ 		goto error;
+ 	}
+ 
+-	err = bt_procfs_init(&init_net, "l2cap", &l2cap_sk_list,
++	err = bt_procfs_init(current->nsproxy->net_ns, "l2cap", &l2cap_sk_list,
+ 			     NULL);
+ 	if (err < 0) {
+ 		BT_ERR("Failed to create L2CAP proc file");
+@@ -1704,7 +1704,7 @@ int __init l2cap_init_sockets(void)
+ 
+ void l2cap_cleanup_sockets(void)
+ {
+-	bt_procfs_cleanup(&init_net, "l2cap");
++	bt_procfs_cleanup(current->nsproxy->net_ns, "l2cap");
+ 	bt_sock_unregister(BTPROTO_L2CAP);
+ 	proto_unregister(&l2cap_proto);
+ }
+diff --git a/net/bluetooth/rfcomm/core.c b/net/bluetooth/rfcomm/core.c
+index 4a0b41d75c84..b02e6203bb9a 100644
+--- a/net/bluetooth/rfcomm/core.c
++++ b/net/bluetooth/rfcomm/core.c
+@@ -200,7 +200,7 @@ static int rfcomm_l2sock_create(struct socket **sock)
+ 
+ 	BT_DBG("");
+ 
+-	err = sock_create_kern(&init_net, PF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP, sock);
++	err = sock_create_kern(current->nsproxy->net_ns, PF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP, sock);
+ 	if (!err) {
+ 		struct sock *sk = (*sock)->sk;
+ 		sk->sk_data_ready   = rfcomm_l2data_ready;
+diff --git a/net/bluetooth/rfcomm/sock.c b/net/bluetooth/rfcomm/sock.c
+index 1aaccf637479..780146c642b0 100644
+--- a/net/bluetooth/rfcomm/sock.c
++++ b/net/bluetooth/rfcomm/sock.c
+@@ -1076,7 +1076,7 @@ int __init rfcomm_init_sockets(void)
+ 		goto error;
+ 	}
+ 
+-	err = bt_procfs_init(&init_net, "rfcomm", &rfcomm_sk_list, NULL);
++	err = bt_procfs_init(current->nsproxy->net_ns, "rfcomm", &rfcomm_sk_list, NULL);
+ 	if (err < 0) {
+ 		BT_ERR("Failed to create RFCOMM proc file");
+ 		bt_sock_unregister(BTPROTO_RFCOMM);
+@@ -1101,7 +1101,7 @@ int __init rfcomm_init_sockets(void)
+ 
+ void __exit rfcomm_cleanup_sockets(void)
+ {
+-	bt_procfs_cleanup(&init_net, "rfcomm");
++	bt_procfs_cleanup(current->nsproxy->net_ns, "rfcomm");
+ 
+ 	debugfs_remove(rfcomm_sock_debugfs);
+ 
+diff --git a/net/bluetooth/sco.c b/net/bluetooth/sco.c
+index 795e920a3281..0c9dcc2a6009 100644
+--- a/net/bluetooth/sco.c
++++ b/net/bluetooth/sco.c
+@@ -1229,7 +1229,7 @@ int __init sco_init(void)
+ 		goto error;
+ 	}
+ 
+-	err = bt_procfs_init(&init_net, "sco", &sco_sk_list, NULL);
++	err = bt_procfs_init(current->nsproxy->net_ns, "sco", &sco_sk_list, NULL);
+ 	if (err < 0) {
+ 		BT_ERR("Failed to create SCO proc file");
+ 		bt_sock_unregister(BTPROTO_SCO);
+@@ -1255,7 +1255,7 @@ int __init sco_init(void)
+ 
+ void sco_exit(void)
+ {
+-	bt_procfs_cleanup(&init_net, "sco");
++	bt_procfs_cleanup(current->nsproxy->net_ns, "sco");	
+ 
+ 	debugfs_remove(sco_debugfs);
+ 
